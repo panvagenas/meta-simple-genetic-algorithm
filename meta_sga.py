@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-
-
 import argparse
 from abc import ABCMeta, abstractmethod
 from random import random, randrange, uniform, randint
@@ -113,20 +111,26 @@ class GAPopulation(Population):
         Population.__init__(self, nvars, pop_size)
         self.antigene_pop_size = antigene_pop_size
         self.antigene_dna = ''
+        self.evaluation_dict = {}
 
-        self.antigene_dna = "".join([str(randint(0, 1)) for j in range(0, nvars*self.antigene_pop_size)])
+        self.antigene_dna = "".join([str(randint(0, 1)) for j in range(0, nvars * self.antigene_pop_size)])
 
     def evaluate(self):
         mean = 0
 
         for mem in self.population:
-            mem_dna = mem.gene * self.antigene_pop_size
+            if mem.gene in self.evaluation_dict:
+                mem.fitness = self.evaluation_dict.get(mem.gene)
+            else:
+                mem_dna = mem.gene * self.antigene_pop_size
 
-            xor = int(mem_dna, 2) ^ int(self.antigene_dna, 2)
-            mem.fitness = bin(xor).count("1")
+                xor = int(mem_dna, 2) ^ int(self.antigene_dna, 2)
+                mem.fitness = bin(xor).count("1")
 
-            if mem.fitness > self.best.fitness:
-                self.best = copy(mem)
+                self.evaluation_dict[mem.gene] = mem.fitness
+
+                if mem.fitness > self.best.fitness:
+                    self.best = copy(mem)
 
             mean += mem.fitness
 
@@ -297,7 +301,6 @@ class MetaPopulation(Population):
         for value in list(pm_bin):
             pm += (1 / (2 ** exp)) * int(value)
             exp += 1
-
         return pm
 
     @staticmethod
@@ -330,12 +333,13 @@ def run_sga():
             pop.select_new()
             pop.crossover(args.crossover)
             pop.mutate(args.mutation)
+            pop.evaluate()
 
         mean += pop.best.fitness
         if best_pop.best.fitness < pop.best.fitness:
             best_pop = deepcopy(pop)
 
-    print('Mean fitness: %f' % (mean/args.ga_runtimes))
+    print('Mean fitness: %f' % (mean / args.ga_runtimes))
     pass
 
 
@@ -344,9 +348,10 @@ def run_meta_sga():
     print('Running Meta-SGA')
 
     if not (0 < args.split_point < args.meta_nvars):
-        args.split_point = int(ceil(args.meta_nvars/2))
+        args.split_point = int(ceil(args.meta_nvars / 2))
 
-    pop = MetaPopulation(args.meta_nvars, args.meta_popsize, args.nvars, args.popsize, args.antigenpopsize, args.popsize, args.split_point)
+    pop = MetaPopulation(args.meta_nvars, args.meta_popsize, args.nvars, args.popsize, args.antigenpopsize,
+                         args.popsize, args.split_point)
     pop.evaluate()
 
     for generation in range(0, args.meta_maxgens):
@@ -355,10 +360,12 @@ def run_meta_sga():
         print('Fitness: %f' % pop.best.fitness)
         print('Crossover probability: %f' % pop.px_from_chromosome(pop.best))
         print('Mutation probability: %f' % pop.pm_from_chromosome(pop.best))
+        if args.verbose:
+            print_px_pm_spread(pop)
         elapsed_time = time() - start
         print('Time taken: %f' % elapsed_time)
         time_remaining = elapsed_time * (args.meta_maxgens - generation)
-        print('Estimated time remaining: %.1f min' % (time_remaining/60))
+        print('Estimated time remaining: %.1f min' % (time_remaining / 60))
 
         start = time()
         print('')
@@ -372,8 +379,61 @@ def run_meta_sga():
     print('For crossover probability: %f and mutation probability: %f' %
           (pop.px_from_chromosome(pop.best), pop.pm_from_chromosome(pop.best)))
     print('Fitness: %f' % pop.best.fitness)
+
     pass
 
+def print_px_pm_spread(population):
+    spread_px = {i: 0 for i in range(0, 10)}
+    spread_pm = {i: 0 for i in range(0, 10)}
+    for mem in population.population:
+        if population.px_from_chromosome(mem) > 0.9:
+            spread_px[9] += 1
+        elif population.px_from_chromosome(mem) > 0.8:
+            spread_px[8] += 1
+        elif population.px_from_chromosome(mem) > 0.7:
+            spread_px[7] += 1
+        elif population.px_from_chromosome(mem) > 0.6:
+            spread_px[6] += 1
+        elif population.px_from_chromosome(mem) > 0.5:
+            spread_px[5] += 1
+        elif population.px_from_chromosome(mem) > 0.4:
+            spread_px[4] += 1
+        elif population.px_from_chromosome(mem) > 0.3:
+            spread_px[3] += 1
+        elif population.px_from_chromosome(mem) > 0.2:
+            spread_px[2] += 1
+        elif population.px_from_chromosome(mem) > 0.1:
+            spread_px[1] += 1
+        else:
+            spread_px[0] += 1
+
+        if population.pm_from_chromosome(mem) > 0.9:
+            spread_pm[9] += 1
+        elif population.pm_from_chromosome(mem) > 0.8:
+            spread_pm[8] += 1
+        elif population.pm_from_chromosome(mem) > 0.7:
+            spread_pm[7] += 1
+        elif population.pm_from_chromosome(mem) > 0.6:
+            spread_pm[6] += 1
+        elif population.pm_from_chromosome(mem) > 0.5:
+            spread_pm[5] += 1
+        elif population.pm_from_chromosome(mem) > 0.4:
+            spread_pm[4] += 1
+        elif population.pm_from_chromosome(mem) > 0.3:
+            spread_pm[3] += 1
+        elif population.pm_from_chromosome(mem) > 0.2:
+            spread_pm[2] += 1
+        elif population.pm_from_chromosome(mem) > 0.1:
+            spread_pm[1] += 1
+        else:
+            spread_pm[0] += 1
+
+    print('Crossover Probability Spread: ')
+    for i in spread_px:
+        print('%d-%d\t%s' % (i, i+1, (spread_px[i] * '=')))
+    print('Mutation Probability Spread: ')
+    for i in spread_px:
+        print('%d-%d\t%s' % (i, i+1, (spread_pm[i] * '=')))
 
 if args.run_ga:
     run_sga()
