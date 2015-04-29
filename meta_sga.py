@@ -446,6 +446,11 @@ def print_px_pm_spread(population):
         print('%d-%d\t%s' % (i, i + 1, (spread_pm[i] * '=')))
 
 
+if args.run_ga:
+    run_sga()
+else:
+    run_meta_sga()
+
 print('=' * 20, ' Arguments ', '=' * 20)
 print(
     ('GA Population Size: %d\n'
@@ -458,10 +463,7 @@ print(
      (args.popsize, args.maxgens, args.nvars, args.antigenpopsize, args.ga_runtimes, args.crossover, args.mutation))
 )
 
-if args.run_ga:
-    run_sga()
-else:
-    run_meta_sga()
+if not args.run_ga:
     print('Meta-GA Population Size: %d\n'
           'Meta-GA Generations: %d\n'
           'Meta-GA N Vars: %d\n'
