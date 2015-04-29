@@ -9,25 +9,34 @@ from time import time
 
 parser = argparse.ArgumentParser(description='Meta-SGA Algorithm')
 
-parser.add_argument('-gp', '--popsize', dest='popsize', default=50, type=int, help='GA Population Size')
-parser.add_argument('-gg', '--maxgens', dest='maxgens', default=20, type=int, help='GA Generations')
-parser.add_argument('-gn', '--nvars', dest='nvars', default=8, type=int, help='GA N Vars')
+parser.add_argument('-gp', '--popsize', dest='popsize', default=50, type=int,
+                    help='GA Population Size')
+parser.add_argument('-gg', '--maxgens', dest='maxgens', default=20, type=int,
+                    help='GA Generations')
+parser.add_argument('-gn', '--nvars', dest='nvars', default=8, type=int,
+                    help='GA N Vars')
 parser.add_argument('-ga', '--antigenpopsize', dest='antigenpopsize', default=1000, type=int,
                     help='Antigens Population Size')
 parser.add_argument('-gr', '--ga_runtimes', dest='ga_runtimes', default=1, type=int,
                     help='Number of times GA will be called in order to eval Meta-GA chromosome')
-parser.add_argument('-g', '--run_ga', dest='run_ga', action='store_const', const=True, help='Run Only SGA')
+parser.add_argument('-g', '--run_ga', dest='run_ga', action='store_const', const=True,
+                    help='Run Only SGA')
 
-parser.add_argument('-mp', '--meta_popsize', dest='meta_popsize', default=100, type=int, help='Meta-GA Population Size')
-parser.add_argument('-mg', '--meta_maxgens', dest='meta_maxgens', default=50, type=int, help='Meta-GA Generations')
-parser.add_argument('-mn', '--meta_nvars', dest='meta_nvars', default=8, type=int, help='Meta-GA N Vars')
+parser.add_argument('-mp', '--meta_popsize', dest='meta_popsize', default=100, type=int,
+                    help='Meta-GA Population Size')
+parser.add_argument('-mg', '--meta_maxgens', dest='meta_maxgens', default=50, type=int,
+                    help='Meta-GA Generations')
+parser.add_argument('-mn', '--meta_nvars', dest='meta_nvars', default=8, type=int,
+                    help='Meta-GA N Vars')
 
 parser.add_argument('-px', '--crossover', dest='crossover', default=0.7, type=float,
                     help='Meta-GA Crossover Probability')
-parser.add_argument('-pm', '--mutation', dest='mutation', default=0.01, type=float, help='Meta-GA Mutation Probability')
+parser.add_argument('-pm', '--mutation', dest='mutation', default=0.01, type=float,
+                    help='Meta-GA Mutation Probability')
 parser.add_argument('-v', '--verbose', dest='verbose', action='store_const', const=True,
                     help='Verbose info to std output')
-parser.add_argument('-sp', '--split_point', dest='split_point', default=0, type=int, help='Meta-GA N Vars')
+parser.add_argument('-sp', '--split_point', dest='split_point', default=0, type=int,
+                    help='Meta-GA Chromosome split point')
 
 args = parser.parse_args()
 
@@ -382,6 +391,7 @@ def run_meta_sga():
 
     pass
 
+
 def print_px_pm_spread(population):
     spread_px = {i: 0 for i in range(0, 10)}
     spread_pm = {i: 0 for i in range(0, 10)}
@@ -430,12 +440,32 @@ def print_px_pm_spread(population):
 
     print('Crossover Probability Spread: ')
     for i in spread_px:
-        print('%d-%d\t%s' % (i, i+1, (spread_px[i] * '=')))
+        print('%d-%d\t%s' % (i, i + 1, (spread_px[i] * '=')))
     print('Mutation Probability Spread: ')
     for i in spread_px:
-        print('%d-%d\t%s' % (i, i+1, (spread_pm[i] * '=')))
+        print('%d-%d\t%s' % (i, i + 1, (spread_pm[i] * '=')))
+
+
+print('=' * 20, ' Arguments ', '=' * 20)
+print(
+    ('GA Population Size: %d\n'
+     'GA Generations: %d\n'
+     'GA N Vars: %d\n'
+     'GA Antigens Population Size: %d\n'
+     'GA Runtimes: %d\n'
+     'Crossover Probability: %f\n'
+     'Mutation Probability: %f\n' %
+     (args.popsize, args.maxgens, args.nvars, args.popsize, args.runtimes, args.crossover, args.mutation))
+)
 
 if args.run_ga:
     run_sga()
 else:
     run_meta_sga()
+    print('Meta-GA Population Size: %d\n'
+          'Meta-GA Generations: %d\n'
+          'Meta-GA N Vars: %d\n'
+          'Meta-GA Chromosome split point: %d\n' %
+          (args.meta_popsize, args.meta_maxgens, args.meta_nvars, args.split_point))
+
+print('=' * 51, '\n')
