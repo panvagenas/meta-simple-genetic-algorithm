@@ -455,7 +455,7 @@ print(
      'GA Runtimes: %d\n'
      'Crossover Probability: %f\n'
      'Mutation Probability: %f\n' %
-     (args.popsize, args.maxgens, args.nvars, args.popsize, args.runtimes, args.crossover, args.mutation))
+     (args.popsize, args.maxgens, args.nvars, args.antigenpopsize, args.ga_runtimes, args.crossover, args.mutation))
 )
 
 if args.run_ga:
