@@ -37,6 +37,8 @@ parser.add_argument('-v', '--verbose', dest='verbose', action='store_const', con
                     help='Verbose info to std output')
 parser.add_argument('-sp', '--split_point', dest='split_point', default=0, type=int,
                     help='Meta-GA Chromosome split point')
+parser.add_argument('-e', '--elitism', dest='elitism', action='store_const', const=True,
+                    help='Use elitism (effects only Meta-GA)')
 
 args = parser.parse_args()
 
@@ -206,7 +208,10 @@ class MetaPopulation(Population):
 
         for mem in self.population:
             mem.fitness = 0
-            self.best = Chromosome()
+
+            if not args.elitism:
+                self.best = Chromosome()
+
             mean_for_px_pm = 0.0
             px = self.px_from_chromosome(mem)
             pm = self.pm_from_chromosome(mem)
@@ -389,7 +394,7 @@ def run_meta_sga():
           (pop.px_from_chromosome(pop.best), pop.pm_from_chromosome(pop.best)))
     print('Fitness: %f' % pop.best.fitness)
 
-    pass
+    return pop
 
 
 def print_px_pm_spread(population):
@@ -449,9 +454,10 @@ def print_px_pm_spread(population):
 if args.run_ga:
     run_sga()
 else:
-    run_meta_sga()
+    pop = run_meta_sga()
 
-print('=' * 20, ' Arguments ', '=' * 20)
+print('\n')
+print('=' * 19, ' Arguments ', '=' * 19)
 print(
     ('GA Population Size: %d\n'
      'GA Generations: %d\n'
@@ -464,10 +470,21 @@ print(
 )
 
 if not args.run_ga:
+    if args.elitism:
+        elitism = 'Yes'
+    else:
+        elitism = 'No'
     print('Meta-GA Population Size: %d\n'
           'Meta-GA Generations: %d\n'
           'Meta-GA N Vars: %d\n'
-          'Meta-GA Chromosome split point: %d\n' %
-          (args.meta_popsize, args.meta_maxgens, args.meta_nvars, args.split_point))
+          'Meta-GA Chromosome split point: %d\n'
+          'Using Elitism: %s\n' %
+          (args.meta_popsize, args.meta_maxgens, args.meta_nvars, args.split_point, elitism))
+
+    print('=' * 20, ' Results ', '=' * 20)
+    print('Best Gene: %s' % pop.best.gene)
+    print('For crossover probability: %f and mutation probability: %f' %
+          (pop.px_from_chromosome(pop.best), pop.pm_from_chromosome(pop.best)))
+    print('Fitness: %f' % pop.best.fitness)
 
 print('=' * 51, '\n')
